@@ -1,0 +1,96 @@
+import { useEffect, useMemo, useState } from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
+import HomePage from "./pages/HomePage";
+import CollectionsPage from "./pages/CollectionsPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import ScrollProgress from "./components/common/ScrollProgress";
+import WhatsAppFloat from "./components/common/WhatsAppFloat";
+import LoadingScreen from "./components/common/LoadingScreen";
+import { products } from "./data/products";
+
+gsap.registerPlugin(ScrollTrigger);
+
+const App = () => {
+  const location = useLocation();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.utils.toArray(".reveal").forEach((item) => {
+        gsap.fromTo(
+          item,
+          { autoAlpha: 0, y: 32 },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: item,
+              start: "top 85%"
+            }
+          }
+        );
+      });
+    });
+
+    return () => ctx.revert();
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0;
+      const bar = document.getElementById("scroll-progress");
+      if (bar) bar.style.width = `${progress}%`;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const productMap = useMemo(() => {
+    return products.reduce((acc, product) => {
+      acc[product.id] = product;
+      return acc;
+    }, {});
+  }, []);
+
+  return (
+    <>
+      {isLoading && <LoadingScreen />}
+      <ScrollProgress />
+      <Navbar />
+      <main className="mx-auto min-h-screen max-w-7xl px-4 pt-10 md:px-8">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/collections" element={<CollectionsPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage productMap={productMap} />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </main>
+      <WhatsAppFloat />
+      <Footer />
+    </>
+  );
+};
+
+export default App;
