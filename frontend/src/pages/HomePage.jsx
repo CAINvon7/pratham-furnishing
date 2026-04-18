@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { categories, products, testimonials, trustBadges, whatsappLink } from "../data/products";
+import { categories, testimonials, trustBadges, whatsappLink } from "../data/products";
 import ProductCard from "../components/product/ProductCard";
 
-const HomePage = () => {
+const HomePage = ({ products, productsError }) => {
   return (
     <div className="space-y-20">
       <section className="reveal grid gap-8 rounded-3xl bg-[var(--surface)] p-8 shadow-xl md:grid-cols-2 md:p-12">
@@ -48,6 +48,11 @@ const HomePage = () => {
 
       <section className="reveal">
         <h2 className="mb-6 text-3xl font-semibold text-[var(--text)]">Popular Picks</h2>
+        {productsError && (
+          <p className="mb-4 rounded-xl border border-[var(--border)] bg-white/60 p-4 text-sm text-[var(--muted)]">
+            {productsError}
+          </p>
+        )}
         <div className="grid gap-6 md:grid-cols-3">
           {products.slice(0, 3).map((product) => (
             <ProductCard key={product.id} product={product} />

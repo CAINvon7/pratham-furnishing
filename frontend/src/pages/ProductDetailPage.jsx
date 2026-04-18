@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ProductCard from "../components/product/ProductCard";
-import { products, whatsappLink } from "../data/products";
+import { whatsappLink } from "../data/products";
 
-const ProductDetailPage = ({ productMap }) => {
+const ProductDetailPage = ({ productMap, products }) => {
   const { id } = useParams();
   const product = productMap[id];
   const [activeImage, setActiveImage] = useState(0);

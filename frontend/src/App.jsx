@@ -13,17 +13,34 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ScrollProgress from "./components/common/ScrollProgress";
 import WhatsAppFloat from "./components/common/WhatsAppFloat";
 import LoadingScreen from "./components/common/LoadingScreen";
-import { products } from "./data/products";
+import { getProducts } from "./lib/api";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const App = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [productsError, setProductsError] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1200);
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await getProducts();
+        if (!cancelled) setProducts(data);
+      } catch (err) {
+        if (!cancelled) setProductsError(err?.message || "Failed to load products");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -70,7 +87,7 @@ const App = () => {
       acc[product.id] = product;
       return acc;
     }, {});
-  }, []);
+  }, [products]);
 
   return (
     <>
@@ -79,9 +96,9 @@ const App = () => {
       <Navbar />
       <main className="mx-auto min-h-screen max-w-7xl px-4 pt-10 md:px-8">
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/collections" element={<CollectionsPage />} />
-          <Route path="/product/:id" element={<ProductDetailPage productMap={productMap} />} />
+          <Route path="/" element={<HomePage products={products} productsError={productsError} />} />
+          <Route path="/collections" element={<CollectionsPage products={products} productsError={productsError} />} />
+          <Route path="/product/:id" element={<ProductDetailPage productMap={productMap} products={products} />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFoundPage />} />

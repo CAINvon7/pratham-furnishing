@@ -6,16 +6,34 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-const corsOptions = {
-  origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : true,
-};
-app.use(cors(corsOptions));
+const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true); // server-to-server / curl
+      if (allowedOrigins.length === 0) return callback(null, true); // allow all when not configured
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked origin: ${origin}`));
+    },
+  })
+);
 app.use(express.json());
 
+app.get("/", (req, res) => {
+  res.json({ ok: true, name: "Pratham Furnishing API", docs: "/api/products" });
+});
+
 // DB CONNECTION
+if (!process.env.MONGO_URI) {
+  console.error("MONGO_URI is missing — add it in Render → Environment");
+}
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected"))
-.catch((err) => console.log(err));
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error("MongoDB connect error:", err.message));
 
 // SCHEMA
 const ProductSchema = new mongoose.Schema({
@@ -31,9 +49,14 @@ const Product = mongoose.model("Product", ProductSchema);
 // GET PRODUCTS
 app.get("/api/products", async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      console.error("GET /api/products: DB not connected (readyState=%s)", mongoose.connection.readyState);
+      return res.status(503).json({ error: "Database unavailable" });
+    }
     const products = await Product.find();
     res.json(products);
-  } catch {
+  } catch (err) {
+    console.error("GET /api/products:", err.message);
     res.status(500).json({ error: "Failed to fetch products" });
   }
 });

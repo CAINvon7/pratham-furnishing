@@ -2,9 +2,8 @@ import { useMemo, useState } from "react";
 import FilterBar from "../components/product/FilterBar";
 import ProductCard from "../components/product/ProductCard";
 import SearchBar from "../components/common/SearchBar";
-import { products } from "../data/products";
 
-const CollectionsPage = () => {
+const CollectionsPage = ({ products, productsError }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({ fabricType: "", color: "", priceRange: "" });
 
@@ -13,7 +12,7 @@ const CollectionsPage = () => {
       fabricTypes: [...new Set(products.map((item) => item.fabricType))],
       colors: [...new Set(products.map((item) => item.color))]
     };
-  }, []);
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -39,6 +38,12 @@ const CollectionsPage = () => {
         <h1 className="text-4xl font-semibold text-[var(--text)]">Collections</h1>
         <p className="text-[var(--muted)]">Explore curtains, bedsheets, sofa fabrics and upholstery materials.</p>
       </header>
+
+      {productsError && (
+        <p className="rounded-xl border border-[var(--border)] bg-white/60 p-4 text-sm text-[var(--muted)]">
+          {productsError}
+        </p>
+      )}
 
       <SearchBar value={searchQuery} onChange={setSearchQuery} />
       <FilterBar filters={filters} setFilters={setFilters} options={options} />
