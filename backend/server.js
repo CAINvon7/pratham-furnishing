@@ -11,12 +11,25 @@ const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL ||
   .map((s) => s.trim())
   .filter(Boolean);
 
+/** Any Vite port (5173, 5174, …) without updating Render each time */
+function isLocalDevOrigin(origin) {
+  try {
+    const u = new URL(origin);
+    const host = u.hostname.toLowerCase();
+    if (host !== "localhost" && host !== "127.0.0.1") return false;
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 app.use(
   cors({
     origin(origin, callback) {
       if (!origin) return callback(null, true); // server-to-server / curl
       if (allowedOrigins.length === 0) return callback(null, true); // allow all when not configured
       if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (isLocalDevOrigin(origin)) return callback(null, true);
       return callback(new Error(`CORS blocked origin: ${origin}`));
     },
   })
