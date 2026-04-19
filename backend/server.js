@@ -30,6 +30,7 @@ app.use(
       if (allowedOrigins.length === 0) return callback(null, true); // allow all when not configured
       if (allowedOrigins.includes(origin)) return callback(null, true);
       if (isLocalDevOrigin(origin)) return callback(null, true);
+      console.warn("CORS blocked:", origin, "| configured:", allowedOrigins.join(", ") || "(none)");
       return callback(new Error(`CORS blocked origin: ${origin}`));
     },
   })
