@@ -23,6 +23,25 @@ function isLocalDevOrigin(origin) {
   }
 }
 
+/** Production + preview deploys: slug.vercel.app and slug-*.vercel.app */
+function isVercelProjectOrigin(origin, slug) {
+  if (!slug) return false;
+  try {
+    const u = new URL(origin);
+    if (u.protocol !== "https:") return false;
+    const host = u.hostname.toLowerCase();
+    const s = slug.toLowerCase().replace(/^\/+|\/+$/g, "");
+    if (!s) return false;
+    if (host === `${s}.vercel.app`) return true;
+    if (host.startsWith(`${s}-`) && host.endsWith(".vercel.app")) return true;
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+const vercelAppSlug = (process.env.VERCEL_APP_SLUG || "").trim();
+
 app.use(
   cors({
     origin(origin, callback) {
@@ -30,6 +49,7 @@ app.use(
       if (allowedOrigins.length === 0) return callback(null, true); // allow all when not configured
       if (allowedOrigins.includes(origin)) return callback(null, true);
       if (isLocalDevOrigin(origin)) return callback(null, true);
+      if (vercelAppSlug && isVercelProjectOrigin(origin, vercelAppSlug)) return callback(null, true);
       console.warn("CORS blocked:", origin, "| configured:", allowedOrigins.join(", ") || "(none)");
       return callback(new Error(`CORS blocked origin: ${origin}`));
     },
