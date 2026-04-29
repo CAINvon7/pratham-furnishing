@@ -10,6 +10,7 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import AdminProductsPage from "./pages/AdminProductsPage";
 import ScrollProgress from "./components/common/ScrollProgress";
 import WhatsAppFloat from "./components/common/WhatsAppFloat";
 import LoadingScreen from "./components/common/LoadingScreen";
@@ -20,8 +21,22 @@ gsap.registerPlugin(ScrollTrigger);
 const App = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [productsError, setProductsError] = useState("");
+
+  const refreshProducts = async () => {
+    try {
+      setProductsLoading(true);
+      setProductsError("");
+      const data = await getProducts();
+      setProducts(data);
+    } catch (err) {
+      setProductsError(err?.message || "Failed to load products");
+    } finally {
+      setProductsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1200);
@@ -29,18 +44,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await getProducts();
-        if (!cancelled) setProducts(data);
-      } catch (err) {
-        if (!cancelled) setProductsError(err?.message || "Failed to load products");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    void refreshProducts();
   }, []);
 
   useEffect(() => {
@@ -96,11 +100,21 @@ const App = () => {
       <Navbar />
       <main className="mx-auto min-h-screen max-w-7xl px-4 pt-10 md:px-8">
         <Routes>
-          <Route path="/" element={<HomePage products={products} productsError={productsError} />} />
-          <Route path="/collections" element={<CollectionsPage products={products} productsError={productsError} />} />
-          <Route path="/product/:id" element={<ProductDetailPage productMap={productMap} products={products} />} />
+          <Route
+            path="/"
+            element={<HomePage products={products} productsError={productsError} productsLoading={productsLoading} />}
+          />
+          <Route
+            path="/collections"
+            element={<CollectionsPage products={products} productsError={productsError} productsLoading={productsLoading} />}
+          />
+          <Route
+            path="/product/:id"
+            element={<ProductDetailPage productMap={productMap} products={products} productsLoading={productsLoading} />}
+          />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/store-dashboard" element={<AdminProductsPage products={products} onProductsChange={refreshProducts} />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>

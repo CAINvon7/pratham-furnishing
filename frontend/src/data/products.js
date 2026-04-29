@@ -151,12 +151,49 @@ export const testimonials = [
 export const trustBadges = [
   "Premium quality fabrics",
   "Custom stitching available",
-  "Affordable pricing promise",
-  "Wide variety of colors"
+  "Local delivery support",
+  "Delhi NCR store assistance"
 ];
 
-export const whatsappMessage = encodeURIComponent(
-  "Hi, I'm interested in your fabrics"
-);
+export const businessInfo = {
+  phone: "",
+  whatsappNumber: "",
+  city: "Delhi NCR",
+  address: "Timber Block, Block A, Ware Housing Scheme, Kirti Nagar, New Delhi, 110015",
+  serviceAreas: ["Delhi NCR", "Kirti Nagar", "Nearby local orders"],
+  turnaround: "Fast response within business hours",
+  mapUrl: "https://www.google.com/maps/place/Pratham+Furnishing/@28.6367264,77.1314654,17.45z/data=!4m6!3m5!1s0x390d033d9632eeb1:0x5341d22a180e0372!8m2!3d28.6367243!4d77.1333541!16s%2Fg%2F11bw5_g4bv",
+  mapEmbedUrl: "https://www.google.com/maps?q=28.6367243,77.1333541&z=17&output=embed",
+};
 
-export const whatsappLink = `https://wa.me/919999999999?text=${whatsappMessage}`;
+export const sellingPoints = [
+  "Curtains, bedsheets, and sofa fabrics in one place",
+  "Help with matching colors, fabric types, and room style",
+  "Custom measurement guidance for local customers",
+  "Ideal for homes, rentals, and interior design projects",
+];
+
+export const buyingSteps = [
+  {
+    title: "Browse or ask",
+    description: "Shortlist products online or tell us your room and fabric requirement.",
+  },
+  {
+    title: "Get a quote",
+    description: "We confirm pricing, availability, and suggest the right material for your use case.",
+  },
+  {
+    title: "Order locally",
+    description: "Finalize via call or WhatsApp and arrange pickup, delivery, or stitching support.",
+  },
+];
+
+export function buildWhatsAppLink(message = "Hi, I'm interested in your furnishings.") {
+  if (!businessInfo.whatsappNumber) {
+    return "#";
+  }
+  const encoded = encodeURIComponent(message);
+  return `https://wa.me/${businessInfo.whatsappNumber}?text=${encoded}`;
+}
+
+export const whatsappLink = buildWhatsAppLink();
